@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Study Planner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4a90e2;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    input, button {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    input[type="text"], input[type="date"], input[type="time"] {
+      flex: 1;
+    }
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #357abd;
+    }
+    .task-list {
+      margin-top: 20px;
+    }
+    .task {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-left: 5px solid #4a90e2;
+      border-radius: 8px;
+    }
+    .task.completed {
+      border-left: 5px solid #2ecc71;
+      text-decoration: line-through;
+      color: gray;
+    }
+    .task span {
+      flex: 1;
+      margin-left: 10px;
+    }
+    .timeline {
+      margin-top: 20px;
+      padding: 10px;
+      border-top: 2px solid #ddd;
+    }
+    .timeline h3 {
+      margin-bottom: 10px;
+    }
+    .timeline ul {
+      list-style: none;
+      padding: 0;
+    }
+    .timeline li {
+      margin: 8px 0;
+      padding: 6px;
+      background: #eef3fc;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>📘 Smart Study Planner</header>
+
+  <div class="container">
+    <form id="taskForm">
+      <input type="text" id="taskInput" placeholder="Enter study goal..." required>
+      <input type="date" id="dateInput" required>
+      <input type="time" id="timeInput" required>
+      <button type="submit">Add Task</button>
+    </form>
+
+    <div class="task-list" id="taskList"></div>
+
+    <div class="timeline">
+      <h3>📅 Upcoming Study Timeline</h3>
+      <ul id="timelineList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const dateInput = document.getElementById('dateInput');
+    const timeInput = document.getElementById('timeInput');
+    const taskList = document.getElementById('taskList');
+    const timelineList = document.getElementById('timelineList');
+
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      taskList.innerHTML = '';
+      timelineList.innerHTML = '';
+
+      tasks.forEach((task, index) => {
+        // Task Display
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task' + (task.completed ? ' completed' : '');
+        
+        const checkBtn = document.createElement('input');
+        checkBtn.type = 'checkbox';
+        checkBtn.checked = task.completed;
+        checkBtn.addEventListener('change', () => {
+          tasks[index].completed = !tasks[index].completed;
+          saveTasks();
+          renderTasks();
+        });
+
+        const span = document.createElement('span');
+        span.textContent = `${task.text} - ${task.date} ${task.time}`;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '❌';
+        delBtn.style.background = '#e74c3c';
+        delBtn.style.marginLeft = '10px';
+        delBtn.addEventListener('click', () => {
+          tasks.splice(index, 1);
+          saveTasks();
+          renderTasks();
+        });
+
+        taskDiv.appendChild(checkBtn);
+        taskDiv.appendChild(span);
+        taskDiv.appendChild(delBtn);
+        taskList.appendChild(taskDiv);
+
+        // Timeline
+        if (!task.completed) {
+          const li = document.createElement('li');
+          li.textContent = `${task.date} ${task.time} - ${task.text}`;
+          timelineList.appendChild(li);
+        }
+      });
+    }
+
+    taskForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const newTask = {
+        text: taskInput.value,
+        date: dateInput.value,
+        time: timeInput.value,
+        completed: false
+      };
+      tasks.push(newTask);
+      saveTasks();
+      renderTasks();
+      taskForm.reset();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
